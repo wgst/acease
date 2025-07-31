@@ -12,7 +12,7 @@ from julia import Main
 
 
 def initialize_julia(python_path):
-    global pyconv, py, ustrip, potential_energy, forces, virial
+    global pyconv, py, ustrip, potential_energy, forces, virial, set_linear_parameters
 
     jl = Julia(compiled_modules=False)
     Main.eval("ENV[\"JULIA_CONDAPKG_BACKEND\"] = \"Null\"")
@@ -32,6 +32,7 @@ def initialize_julia(python_path):
     pyconv = Main.eval("pyconv(a) = NQCBase.System(NQCBase.convert_from_ase_atoms(a)...)")
     # py = Main.eval("py(a) = PythonCall.Py(a)")
     ustrip = Main.eval("ustrip(a) = Unitful.ustrip.(a)")
+    set_linear_parameters = Main.set_params
 
 def ACEpotentials(potname):
     Main.eval("using ACEpotentials: load_model")
@@ -40,10 +41,10 @@ def ACEpotentials(potname):
     model = ACEpotentialsCalculator("ace_model")
     return model
 
-# Lets you change the parameters of the model without having to reload entirely new model
 def set_params(calc, params):
-    set_linear_parameters(calc.ace_calculator, params)
-    return calc
+    calc  = set_linear_parameters(calc.ace_calculator, params)
+    model = ACEpotentialsCalculator("ace_model")
+    return model
 
 class ACEpotentialsCalculator(Calculator):
     """
